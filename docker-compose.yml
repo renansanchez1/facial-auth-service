@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  # ──────────────────────────────────────────────────────────────────────────
+  # PostgreSQL + pgvector
+  # ──────────────────────────────────────────────────────────────────────────
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: facial_auth
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d facial_auth"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Facial Auth Service
+  # ──────────────────────────────────────────────────────────────────────────
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      ENV: development
+      DATABASE_URL: postgresql+asyncpg://user:password@db:5432/facial_auth
+      LIVENESS_PROVIDER: none           # Mude para "aws" em produção
+      INSIGHTFACE_MODEL: buffalo_l
+      INSIGHTFACE_CTX_ID: -1            # -1 = CPU
+      SIMILARITY_THRESHOLD: "0.40"
+      # AWS (apenas se LIVENESS_PROVIDER=aws)
+      # AWS_REGION: us-east-1
+      # AWS_ACCESS_KEY_ID: ...
+      # AWS_SECRET_ACCESS_KEY: ...
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - insightface_models:/home/appuser/.insightface   # Persiste modelos baixados
+
+volumes:
+  pgdata:
+  insightface_models:
