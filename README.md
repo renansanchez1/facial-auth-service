@@ -142,9 +142,6 @@ gcloud builds submit --config=cloudbuild.yaml \
 
 - **Apenas embeddings são armazenados** — nenhuma imagem é persistida.
 - Embeddings são irreversíveis: não é possível reconstruir a imagem original.
-- Dado biométrico é dado sensível pela LGPD — obtenha **consentimento explícito** no onboarding.
-- Use HTTPS em todos os ambientes.
-- Rotacione as `API_KEYS` periodicamente.
 
 ---
 
